@@ -22,6 +22,8 @@ var _videoJs = require('video.js');
 
 var _videoJs2 = _interopRequireDefault(_videoJs);
 
+var Component = _videoJs2['default'].getComponent('Component');
+//const ClickableComponent = videojs.getComponent('ClickableComponent');
 var Tech = _videoJs2['default'].getComponent('Tech');
 
 /**
@@ -103,7 +105,7 @@ var Externals = (function (_Tech) {
         className: 'vjs-tech vjs-tech-' + this.className_
       });
 
-      var iframeContainer = _videoJs2['default'].dom.createEl(type, _videoJs2['default'].mergeOptions({
+      var iframeContainer = _videoJs2['default'].createEl(type, _videoJs2['default'].mergeOptions({
         id: this.options_.techId,
         scrolling: 'no',
         marginWidth: 0,
@@ -124,7 +126,7 @@ var Externals = (function (_Tech) {
       el.appendChild(iframeContainer);
       var isOnMobile = this.isOnMobile();
       if (!isOnMobile && blocker !== false || blocker) {
-        var divBlocker = _videoJs2['default'].dom.createEl('div', {
+        var divBlocker = _videoJs2['default'].createEl('div', {
           className: 'vjs-iframe-blocker',
           style: 'position:absolute;top:0;left:0;width:100%;height:100%'
         });
@@ -416,10 +418,6 @@ Externals.prototype.options_ = {
 
 Externals.apiReadyQueue = [];
 
-Externals.isSupported = function () {
-  return true;
-};
-
 /* Externals Support Testing -------------------------------------------------------- */
 
 /*
@@ -485,6 +483,8 @@ Externals.prototype['featuresNativeAudioTracks'] = true;
 Externals.prototype['featuresNativeVideoTracks'] = false;
 
 Externals.Events = 'apiready,ad_play,ad_start,ad_timeupdate,ad_pause,ad_end,video_start,\n  \'video_end,play,playing,pause,ended,canplay,canplaythrough,timeupdate,progress,seeking,\n  \'seeked,volumechange,durationchange,fullscreenchange,error'.split(',');
+
+Component.registerComponent('Externals', Externals);
 
 Tech.registerTech('Externals', Externals);
 

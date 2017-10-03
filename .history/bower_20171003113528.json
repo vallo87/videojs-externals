@@ -1,9 +1,9 @@
 {
-  "name": "videojs-externals-6",
-  "version": "1.0.0",
-  "homepage": "https://github.com/vallo87/videojs-externals",
+  "name": "videojs-externals",
+  "version": "1.0.12",
+  "homepage": "https://github.com/Afrostream/videojs-externals",
   "authors": [
-    "Vallo <vallo1987@gmail.com>"
+    "Benjipott <pott.benjamin@gmail.com>"
   ],
   "description": "Externals playback technology for Video.js",
   "main": "es5/videojs-externals.js",
@@ -28,6 +28,6 @@
     "karma.conf.js"
   ],
   "dependencies": {
-    "video.js": "^6.2.7"
+    "video.js": "^5.0.0"
   }
 }

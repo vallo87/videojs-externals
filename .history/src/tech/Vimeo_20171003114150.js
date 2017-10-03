@@ -34,7 +34,7 @@ class Vimeo extends Externals {
 
         vimeoSource = this.parseSrc(vimeoSource);
 
-        const el_ = super.createEl('iframe', {
+        const el_ = super.dom.createEl('iframe', {
             id: this.options_.techId,
             src: `${this.options_.embed}/${vimeoSource}??api=1&player_id=${this.options_.techId}&fullscreen=1&autoplay=${this.options_.autoplay}`
         });

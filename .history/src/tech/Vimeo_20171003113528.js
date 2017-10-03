@@ -6,6 +6,7 @@ import videojs from 'video.js';
 import Externals from './Externals';
 import window from 'global/window';
 
+const Component = videojs.getComponent('Component');
 const Tech = videojs.getComponent('Tech');
 
 /**
@@ -340,6 +341,8 @@ Vimeo.nativeSourceHandler.dispose = function () {
 Vimeo.registerSourceHandler(Vimeo.nativeSourceHandler);
 
 Vimeo.Events = 'loaded,play,ended,timeupdate,progress,seeked,texttrackchange,cuechange,volumechange,error'.split(',');
+
+Component.registerComponent('Vimeo', Vimeo);
 
 Tech.registerTech('Vimeo', Vimeo);
 

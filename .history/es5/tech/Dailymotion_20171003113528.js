@@ -26,6 +26,7 @@ var _Externals2 = require('./Externals');
 
 var _Externals3 = _interopRequireDefault(_Externals2);
 
+var Component = _videoJs2['default'].getComponent('Component');
 var Tech = _videoJs2['default'].getComponent('Tech');
 
 /**
@@ -87,11 +88,8 @@ var Dailymotion = (function (_Externals) {
     }, {
         key: 'injectCss',
         value: function injectCss(overrideStyle) {
-            if (!overrideStyle) {
-                overrideStyle = '';
-            }
-            overrideStyle += '.vjs-dailymotion.vjs-dailymotion-loading {padding-top: 52.6%;background: transparent;}';
-            _get(Object.getPrototypeOf(Dailymotion.prototype), 'injectCss', this).call(this, overrideStyle);
+            var css = '.vjs-dailymotion.vjs-dailymotion-loading {padding-top: 52.6%;background: transparent;}';
+            _get(Object.getPrototypeOf(Dailymotion.prototype), 'injectCss', this).call(this, css);
         }
     }, {
         key: 'initTech',
@@ -230,10 +228,10 @@ var Dailymotion = (function (_Externals) {
         key: 'updateVolume',
         value: function updateVolume() {
             var vol = this.widgetPlayer.volume;
-            if (typeof this.volumeBefore_ === 'undefined') {
+            if (typeof this.volumeBefore_ == "undefined") {
                 this.volumeBefore_ = vol;
             }
-            if (this.volume_ !== vol) {
+            if (this.volume_ != vol) {
                 this.volume_ = vol;
                 this.trigger('volumechange');
             }
@@ -398,6 +396,8 @@ Dailymotion.nativeSourceHandler.dispose = function () {};
 Dailymotion.registerSourceHandler(Dailymotion.nativeSourceHandler);
 
 Dailymotion.Events = ('loaded,play,playing,pause,loadedmetadata,durationchange,ended,' + 'timeupdate,progress,seeking,seeked,subtitlechange,' + 'volumechange,error,video_start,video_end,waiting').split(',');
+
+Component.registerComponent('Dailymotion', Dailymotion);
 
 Tech.registerTech('Dailymotion', Dailymotion);
 

@@ -5,6 +5,7 @@
 import videojs from 'video.js';
 import Externals from './Externals';
 
+const Component = videojs.getComponent('Component');
 const Tech = videojs.getComponent('Tech');
 
 /**
@@ -342,6 +343,8 @@ Dailymotion.registerSourceHandler(Dailymotion.nativeSourceHandler);
 Dailymotion.Events = ('loaded,play,playing,pause,loadedmetadata,durationchange,ended,'+
     'timeupdate,progress,seeking,seeked,subtitlechange,'+
     'volumechange,error,video_start,video_end,waiting').split(',');
+
+Component.registerComponent('Dailymotion', Dailymotion);
 
 Tech.registerTech('Dailymotion', Dailymotion);
 

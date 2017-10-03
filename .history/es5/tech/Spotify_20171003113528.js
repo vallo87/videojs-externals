@@ -26,6 +26,7 @@ var _Externals2 = require('./Externals');
 
 var _Externals3 = _interopRequireDefault(_Externals2);
 
+var Component = _videoJs2['default'].getComponent('Component');
 var Tech = _videoJs2['default'].getComponent('Tech');
 
 /**
@@ -201,6 +202,8 @@ Spotify.Events = ''.split(',');
 
 // Register the native source handler
 Spotify.registerSourceHandler(Spotify.nativeSourceHandler);
+
+Component.registerComponent('Spotify', Spotify);
 
 Tech.registerTech('Spotify', Spotify);
 

@@ -343,6 +343,8 @@ Dailymotion.Events = ('loaded,play,playing,pause,loadedmetadata,durationchange,e
     'timeupdate,progress,seeking,seeked,subtitlechange,'+
     'volumechange,error,video_start,video_end,waiting').split(',');
 
+Component.registerComponent('Dailymotion', Dailymotion);
+
 Tech.registerTech('Dailymotion', Dailymotion);
 
 

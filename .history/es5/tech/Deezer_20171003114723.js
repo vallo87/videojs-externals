@@ -71,11 +71,11 @@ var Deezer = (function (_Externals) {
         src: '//www.deezer.com/plugins/player?type=tracks&id=' + source + '\n      &format=classic&color=007FEB&autoplay=' + this.options_.autoplay + '\n      &playlist=' + this.options_.playList + '&width=100%&height=100%'
       });
 
-      this.infosEl_ = _videoJs2['default'].dom.createEl('div', {
+      this.infosEl_ = _videoJs2['default'].createEl('div', {
         className: 'vjs-deezer-info'
       });
 
-      var deezerEl = _videoJs2['default'].dom.createEl('div', {
+      var deezerEl = _videoJs2['default'].createEl('div', {
         id: 'dz-root'
       });
 

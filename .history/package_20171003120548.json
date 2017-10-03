@@ -1,7 +1,7 @@
 {
   "name": "videojs-externals-6",
   "description": "Externals playback technology for Video.js",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "author": "Valerio Mazza",
   "main": "es5/videojs-externals.js",
   "license": "MIT",

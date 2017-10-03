@@ -5,6 +5,7 @@
 import videojs from 'video.js';
 import Externals from './Externals';
 
+const Component = videojs.getComponent('Component');
 const Tech = videojs.getComponent('Tech');
 
 /**
@@ -47,7 +48,7 @@ class Soundcloud extends Externals {
       &buying=false&liking=false&sharing=false&show_comments=false&show_playcount=false&show_user=false`
     });
 
-    this.infosEl_ = videojs.dom.createEl('div', {
+    this.infosEl_ = videojs.createEl('div', {
       className: 'vjs-soundcloud-info'
     });
 
@@ -335,6 +336,8 @@ Soundcloud.Events = 'ready,play,playProgress,loadProgress,pause,seek,finish,erro
 
 // Register the native source handler
 Soundcloud.registerSourceHandler(Soundcloud.nativeSourceHandler);
+
+Component.registerComponent('Soundcloud', Soundcloud);
 
 Tech.registerTech('Soundcloud', Soundcloud);
 

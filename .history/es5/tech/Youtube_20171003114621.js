@@ -53,6 +53,7 @@ var Youtube = (function (_Externals) {
     _createClass(Youtube, [{
         key: 'createEl',
         value: function createEl() {
+
             var el_ = _get(Object.getPrototypeOf(Youtube.prototype), 'createEl', this).call(this, 'div', {
                 id: this.options_.techId
             });
@@ -269,10 +270,10 @@ var Youtube = (function (_Externals) {
         key: 'updateVolume',
         value: function updateVolume() {
             var vol = this.widgetPlayer.getVolume();
-            if (typeof this.volumeBefore_ === 'undefined') {
+            if (typeof this.volumeBefore_ == "undefined") {
                 this.volumeBefore_ = vol;
             }
-            if (this.volume_ !== vol) {
+            if (this.volume_ != vol) {
                 this.volume_ = vol;
                 this.trigger('volumechange');
             }

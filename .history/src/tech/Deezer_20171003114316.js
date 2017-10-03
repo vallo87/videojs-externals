@@ -1,5 +1,5 @@
 /**
- * @file Soundcloud.js
+ * @file Deezer.js
  * Externals (iframe) Media Controller - Wrapper for HTML5 Media API
  */
 import videojs from 'video.js';
@@ -13,52 +13,59 @@ const Tech = videojs.getComponent('Tech');
  * @param {Object=} options Object of option names and values
  * @param {Function=} ready Ready callback function
  * @extends Tech
- * @class Soundcloud
+ * @class Deezer
  */
 
-class Soundcloud extends Externals {
+class Deezer extends Externals {
   constructor (options, ready) {
     super(options, ready);
   }
 
   injectCss () {
-    let css = `.vjs-${this.className_} > .vjs-poster { display:block; width:50%; }
-    .vjs-${this.className_} .vjs-tech { }
-    .vjs-${this.className_} .vjs-tech > .vjs-poster {  display:block; }
-    .vjs-${this.className_}.vjs-has-started .vjs-poster {display:block;}
-    .vjs-soundcloud-info{position:absolute;display: flex;justify-content: center;align-items: center;left:50%;top:0;right:0;bottom:0;
+    let css = `.vjs-${this.className_} > .vjs-poster { display:block; width:50%; background-size:contain; background-position: 0 50%; background-color: #000; }
+    .vjs-${this.className_} .vjs-tech > .vjs-poster {  display:block; background-color: rgba(76, 50, 65, 0.35);}
+    .vjs-deezer-info{position:absolute;padding:3em 1em 1em 1em;left:50%;top:0;right:0;bottom:0;
       text-align: center; pointer-events: none; text-shadow: 0px 0px 5px rgba(0, 0, 0, 0.69);}`;
     super.injectCss(css);
   }
 
   createEl () {
-    let soundcloudSource = null;
+
+    let source = null;
     if ('string' === typeof this.options_.source) {
-      soundcloudSource = this.options_.source;
+      source = this.options_.source;
     }
     else if ('object' === typeof this.options_.source) {
-      soundcloudSource = this.options_.source.src;
+      source = this.options_.source.src;
     }
 
-    const el_ = super.createEl('iframe', {
+    source = this.parseSrc(source);
+
+    const el_ = super.createEl('div', {
       width: '100%',
       height: '100%',
-      src: `https://w.soundcloud.com/player/?url=${soundcloudSource}&auto_play=${this.options_.autoplay}
-      &buying=false&liking=false&sharing=false&show_comments=false&show_playcount=false&show_user=false`
+      src: `//www.deezer.com/plugins/player?type=tracks&id=${source}
+      &format=classic&color=007FEB&autoplay=${this.options_.autoplay}
+      &playlist=${this.options_.playList}&width=100%&height=100%`
     });
 
-    this.infosEl_ = videojs.dom.createEl('div', {
-      className: 'vjs-soundcloud-info'
+    this.infosEl_ = videojs.createEl('div', {
+      className: 'vjs-deezer-info'
+    });
+
+    const deezerEl = videojs.createEl('div', {
+      id: 'dz-root'
     });
 
     el_.firstChild.style.visibility = this.options_.visibility;
     el_.appendChild(this.infosEl_);
+    el_.appendChild(deezerEl);
 
     return el_;
   }
 
   isApiReady () {
-    return window['SC'];
+    return window['DZ'] && window['DZ']['player'];
   }
 
   onStateChange (event) {
@@ -69,80 +76,78 @@ class Soundcloud extends Externals {
         this.trigger('waiting');
         break;
 
-      case SC.Widget.Events.READY:
+      case 'player_loaded':
         this.trigger('loadedmetadata');
         this.trigger('durationchange');
         this.trigger('canplay');
-        this.onReady();
+        this.updatePause();
         break;
 
-      case SC.Widget.Events.FINISH:
+      case 'track_end':
         this.updatePause();
         this.trigger('ended');
         break;
 
-      case SC.Widget.Events.PLAY:
+      case 'player_play':
+        this.updateDuration();
         this.updatePause();
         this.trigger('play');
-        this.trigger('waiting');
         break;
 
-      case SC.Widget.Events.PLAY_PROGRESS:
-        this.trigger('canplay');
+      case 'player_position':
         this.trigger('playing');
-        this.currentTime_ = ((this.duration_ * 1000) * event.relativePosition ) / 1000;
-        //this.trigger('timeupdate');
+        this.currentTime_ = event[0];
+        this.duration_ = event[1];
+        this.trigger('timeupdate');
         break;
 
-      case SC.Widget.Events.PAUSE:
+      case 'player_paused':
         this.updatePause();
         this.trigger('pause');
         break;
 
-      case SC.Widget.Events.SEEK:
-        this.trigger('seeked');
-        break;
-
-      case SC.Widget.Events.LOAD_PROGRESS:
-        this.trigger('timeupdate');
-        break;
-
-      case SC.Widget.Events.ERROR:
-        this.onPlayerError();
-        break;
     }
   }
 
   parseSrc (src) {
     if (src) {
       // Regex that parse the video ID for any Dailymotion URL
-      var regExp = /^(https?:\/\/)?(www.|api.)?soundcloud.com\//i;
+      var regExp = /^https?:\/\/(?:www\.)?deezer\.com\/(track|album|playlist)\/(\d+)$/;
       var match = src.match(regExp);
 
-      return match ? match[5] || match[3] : null;
+      return match ? match[2] || match[2] : null;
     }
   }
 
   onReady () {
     super.onReady();
-    this.updatePause();
     this.updateDuration();
     this.updateVolume();
     this.updatePoster();
   }
 
   initTech () {
-    this.widgetPlayer = SC.Widget(this.options_.techId);
+    DZ.init({
+      channelUrl: `${window.location.protocol}//${window.location.hostname}`,
+      appId: this.options_.appId,
+      player: {
+        container: this.options_.techId,
+        width: 800,
+        height: 300,
+        onload: this.onReady.bind(this)
+      }
+    });
+    this.widgetPlayer = DZ.player;
     super.initTech();
   }
 
   setupTriggers () {
     this.widgetPlayer.vjsTech = this;
-    for (var i = Soundcloud.Events.length - 1; i >= 0; i--) {
-      const eventName = Soundcloud.Events[i];
+    for (var i = Deezer.Events.length - 1; i >= 0; i--) {
+      const eventName = Deezer.Events[i];
       /*jshint loopfunc: true */
-      this.widgetPlayer.bind(eventName, (data) => {
-        this.eventHandler(videojs.mergeOptions({type: eventName}, data));
+      DZ.Event.subscribe(eventName, (data, event) => {
+        this.eventHandler(videojs.mergeOptions({type: event || data}, data));
       });
     }
   }
@@ -157,7 +162,6 @@ class Soundcloud extends Externals {
    * @method enterFullScreen
    */
   enterFullScreen () {
-    this.widgetPlayer.webkitEnterFullScreen();
   }
 
   /**
@@ -166,38 +170,39 @@ class Soundcloud extends Externals {
    * @method exitFullScreen
    */
   exitFullScreen () {
-    this.widgetPlayer.webkitExitFullScreen();
   }
 
   updatePause () {
-    this.widgetPlayer.isPaused((paused) => {
-      this.paused_ = paused;
-    });
+    this.paused_ = !this.widgetPlayer.isPlaying();
   }
 
   updateDuration () {
-    this.widgetPlayer.getDuration((duration) => {
-      this.duration_ = duration / 1000;
-      this.trigger('durationchange');
-    });
+    const track = this.widgetPlayer.getCurrentTrack();
+    this.duration_ = track && track.duration || 0;
+    this.trigger('durationchange');
   }
 
   updateVolume () {
-    this.widgetPlayer.getVolume((volume) => {
-      this.volume_ = volume;
-      this.trigger('volumechange');
-    });
+    this.volume_ = this.widgetPlayer.getVolume();
+    this.trigger('volumechange');
   }
 
   updatePoster () {
     try {
-      this.widgetPlayer.getCurrentSound((sound) => {
-        if (!sound) {
-          return;
-        }
-        this.setPoster(sound['artwork_url'].replace('large.jpg', 't500x500.jpg'));
-        this.subPosterImage.update(sound['waveform_url'].replace('wis', 'w1').replace('json', 'png'));
-        this.update(sound);
+      //const track = this.widgetPlayer.getCurrentTrack();
+      let track = {};
+      if ('string' === typeof this.options_.source) {
+        track.id = this.options_.source;
+      }
+      else if ('object' === typeof this.options_.source) {
+        track.id = this.options_.source.src;
+      }
+
+      track.id = this.parseSrc(track.id);
+
+      DZ.api('/track/' + track.id, (response) => {
+        this.setPoster(`${response.album['cover_big']}`);
+        this.update(response);
       });
     } catch (e) {
       console.log('unable to set poster', e);
@@ -208,11 +213,21 @@ class Soundcloud extends Externals {
     this.infosEl_.innerHTML = sound.title;
   }
 
-  src (src) {
-    this.widgetPlayer.load(src, {
-        'auto_play': this.options_.autoplay
+  src (source) {
+
+
+    if (!source || !source.src) {
+      if ('string' === typeof this.options_.source) {
+        source = this.options_.source;
       }
-    );
+      else if ('object' === typeof this.options_.source) {
+        source = this.options_.source.src;
+      }
+
+      source = this.parseSrc(source);
+    }
+
+    this.widgetPlayer.playTracks([source]);
   }
 
   duration () {
@@ -261,27 +276,29 @@ class Soundcloud extends Externals {
 
   setMuted (muted) {
     this.muted_ = muted;
-    this.widgetPlayer.setVolume(this.muted_ ? 0 : this.volume_);
+    this.widgetPlayer.setMute(this.muted_);
     this.updateVolume();
   }
 }
 
-Soundcloud.prototype.className_ = 'soundcloud';
+Deezer.prototype.className_ = 'deezer';
 
-Soundcloud.prototype.options_ = {
-  api: '//w.soundcloud.com/player/api.js',
+Deezer.prototype.options_ = {
+  api: 'https://cdns-files.dzcdn.net/js/min/dz.js',
+  appId: 213642,
+  playList: false,
   visibility: 'hidden',
   children: ['subPosterImage']
 };
 
-/* Soundcloud Support Testing -------------------------------------------------------- */
+/* Deezer Support Testing -------------------------------------------------------- */
 
-Soundcloud.isSupported = function () {
+Deezer.isSupported = function () {
   return true;
 };
 
 // Add Source Handler pattern functions to this tech
-Tech.withSourceHandlers(Soundcloud);
+Tech.withSourceHandlers(Deezer);
 
 /*
  * The default native source handler.
@@ -290,36 +307,36 @@ Tech.withSourceHandlers(Soundcloud);
  * @param  {Object} source   The source object
  * @param  {Flash} tech  The instance of the Flash tech
  */
-Soundcloud.nativeSourceHandler = {};
+Deezer.nativeSourceHandler = {};
 
 /**
  * Check if Flash can play the given videotype
  * @param  {String} type    The mimetype to check
  * @return {String}         'probably', 'maybe', or '' (empty string)
  */
-Soundcloud.nativeSourceHandler.canPlayType = function (source) {
-  return (source.indexOf('soundcloud') !== -1);
+Deezer.nativeSourceHandler.canPlayType = function (source) {
+  return (source.indexOf('deezer') !== -1);
 };
 
 /*
- * Check Soundcloud can handle the source natively
+ * Check Deezer can handle the source natively
  *
  * @param  {Object} source  The source object
  * @return {String}         'probably', 'maybe', or '' (empty string)
  */
-Soundcloud.nativeSourceHandler.canHandleSource = function (source) {
+Deezer.nativeSourceHandler.canHandleSource = function (source) {
 
   // If a type was provided we should rely on that
   if (source.type) {
-    return Soundcloud.nativeSourceHandler.canPlayType(source.type);
+    return Deezer.nativeSourceHandler.canPlayType(source.type);
   } else if (source.src) {
-    return Soundcloud.nativeSourceHandler.canPlayType(source.src);
+    return Deezer.nativeSourceHandler.canPlayType(source.src);
   }
 
   return '';
 };
 
-Soundcloud.nativeSourceHandler.handleSource = function (source, tech) {
+Deezer.nativeSourceHandler.handleSource = function (source, tech) {
   tech.src(source.src);
 };
 
@@ -327,16 +344,18 @@ Soundcloud.nativeSourceHandler.handleSource = function (source, tech) {
  * Clean up the source handler when disposing the player or switching sources..
  * (no cleanup is needed when supporting the format natively)
  */
-Soundcloud.nativeSourceHandler.dispose = function () {
+Deezer.nativeSourceHandler.dispose = function () {
 };
 
 
-Soundcloud.Events = 'ready,play,playProgress,loadProgress,pause,seek,finish,error'.split(',');
+Deezer.Events = 'player_loaded,player_play,player_paused,player_position,player_buffering,volume_changed,shuffle_changed,mute_changed,track_end,'.split(',');
 
 // Register the native source handler
-Soundcloud.registerSourceHandler(Soundcloud.nativeSourceHandler);
+Deezer.registerSourceHandler(Deezer.nativeSourceHandler);
 
-Tech.registerTech('Soundcloud', Soundcloud);
+Component.registerComponent('Deezer', Deezer);
+
+Tech.registerTech('Deezer', Deezer);
 
 
-export default Soundcloud;
+export default Deezer;

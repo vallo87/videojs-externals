@@ -361,10 +361,6 @@ Externals.prototype.options_ = {
 
 Externals.apiReadyQueue = [];
 
-Externals.isSupported = function () {
-  return true;
-};
-
 
 /* Externals Support Testing -------------------------------------------------------- */
 

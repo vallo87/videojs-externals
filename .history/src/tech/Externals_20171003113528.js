@@ -4,6 +4,8 @@
  */
 import videojs from 'video.js';
 
+const Component = videojs.getComponent('Component');
+//const ClickableComponent = videojs.getComponent('ClickableComponent');
 const Tech = videojs.getComponent('Tech');
 
 /**
@@ -79,7 +81,7 @@ class Externals extends Tech {
       className: 'vjs-tech vjs-tech-' + this.className_,
     });
 
-    let iframeContainer = videojs.dom.createEl(type, videojs.mergeOptions({
+    let iframeContainer = videojs.createEl(type, videojs.mergeOptions({
       id: this.options_.techId,
       scrolling: 'no',
       marginWidth: 0,
@@ -100,7 +102,7 @@ class Externals extends Tech {
     el.appendChild(iframeContainer);
     const isOnMobile = this.isOnMobile();
     if ((!isOnMobile && blocker !== false) || blocker) {
-      let divBlocker = videojs.dom.createEl('div',
+      let divBlocker = videojs.createEl('div',
         {
           className: 'vjs-iframe-blocker',
           style: 'position:absolute;top:0;left:0;width:100%;height:100%'
@@ -361,10 +363,6 @@ Externals.prototype.options_ = {
 
 Externals.apiReadyQueue = [];
 
-Externals.isSupported = function () {
-  return true;
-};
-
 
 /* Externals Support Testing -------------------------------------------------------- */
 
@@ -433,6 +431,8 @@ Externals.prototype['featuresNativeVideoTracks'] = false;
 Externals.Events = `apiready,ad_play,ad_start,ad_timeupdate,ad_pause,ad_end,video_start,
   'video_end,play,playing,pause,ended,canplay,canplaythrough,timeupdate,progress,seeking,
   'seeked,volumechange,durationchange,fullscreenchange,error`.split(',');
+
+Component.registerComponent('Externals', Externals);
 
 Tech.registerTech('Externals', Externals);
 

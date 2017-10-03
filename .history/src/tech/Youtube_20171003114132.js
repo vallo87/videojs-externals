@@ -23,7 +23,7 @@ class Youtube extends Externals {
     }
 
     createEl () {
-        const el_ = super.createEl('div', {
+        const el_ = super.dom.createEl('div', {
             id: this.options_.techId,
         });
 

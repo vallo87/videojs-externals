@@ -336,6 +336,8 @@ Soundcloud.Events = 'ready,play,playProgress,loadProgress,pause,seek,finish,erro
 // Register the native source handler
 Soundcloud.registerSourceHandler(Soundcloud.nativeSourceHandler);
 
+Component.registerComponent('Soundcloud', Soundcloud);
+
 Tech.registerTech('Soundcloud', Soundcloud);
 
 

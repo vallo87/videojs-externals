@@ -94,7 +94,6 @@ var Vimeo = (function (_Externals) {
         value: function addScriptTag() {
             var self = this;
             if (_globalWindow2['default']['requirejs']) {
-                var requirejs = _globalWindow2['default']['requirejs'];
                 requirejs([this.options_.api], function (Vimeo) {
                     _globalWindow2['default']['Vimeo'] = { Player: Vimeo };
                     self.initTech();
@@ -182,7 +181,7 @@ var Vimeo = (function (_Externals) {
             if (event.volume) {
                 this.updateVolume();
             }
-            if (event.duration && this.duration_ !== event.duration) {
+            if (event.duration && this.duration_ != event.duration) {
                 this.duration_ = event.duration;
                 this.trigger('durationchange');
             }
@@ -223,7 +222,7 @@ var Vimeo = (function (_Externals) {
 
             this.widgetPlayer.getVolume().then(function (volume) {
                 _this2.volume_ = volume;
-                if (_this2.volume_ !== volume) {
+                if (_this2.volume_ != volume) {
                     _this2.trigger('volumechange');
                 }
             });
@@ -235,9 +234,7 @@ var Vimeo = (function (_Externals) {
 
             this.widgetPlayer.getEnded().then(function (ended) {
                 _this3.ended_ = ended;
-                if (ended) {
-                    _this3.trigger('ended');
-                }
+                if (ended) _this3.trigger('ended');
             });
         }
     }, {
@@ -246,7 +243,7 @@ var Vimeo = (function (_Externals) {
             var _this4 = this;
 
             this.widgetPlayer.getPaused().then(function (paused) {
-                if (paused !== _this4.paused_) {
+                if (paused != _this4.paused_) {
                     _this4.paused_ = paused;
                     if (paused) {
                         _this4.trigger('pause');

@@ -26,7 +26,6 @@ var _Externals2 = require('./Externals');
 
 var _Externals3 = _interopRequireDefault(_Externals2);
 
-var Component = _videoJs2['default'].getComponent('Component');
 var Tech = _videoJs2['default'].getComponent('Tech');
 
 /**
@@ -69,7 +68,7 @@ var Soundcloud = (function (_Externals) {
         src: 'https://w.soundcloud.com/player/?url=' + soundcloudSource + '&auto_play=' + this.options_.autoplay + '\n      &buying=false&liking=false&sharing=false&show_comments=false&show_playcount=false&show_user=false'
       });
 
-      this.infosEl_ = _videoJs2['default'].createEl('div', {
+      this.infosEl_ = _videoJs2['default'].dom.createEl('div', {
         className: 'vjs-soundcloud-info'
       });
 
@@ -399,8 +398,6 @@ Soundcloud.Events = 'ready,play,playProgress,loadProgress,pause,seek,finish,erro
 
 // Register the native source handler
 Soundcloud.registerSourceHandler(Soundcloud.nativeSourceHandler);
-
-Component.registerComponent('Soundcloud', Soundcloud);
 
 Tech.registerTech('Soundcloud', Soundcloud);
 

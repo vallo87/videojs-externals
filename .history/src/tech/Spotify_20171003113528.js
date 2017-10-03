@@ -5,6 +5,7 @@
 import videojs from 'video.js';
 import Externals from './Externals';
 
+const Component = videojs.getComponent('Component');
 const Tech = videojs.getComponent('Tech');
 
 /**
@@ -164,6 +165,8 @@ Spotify.Events = ''.split(',');
 
 // Register the native source handler
 Spotify.registerSourceHandler(Spotify.nativeSourceHandler);
+
+Component.registerComponent('Spotify', Spotify);
 
 Tech.registerTech('Spotify', Spotify);
 

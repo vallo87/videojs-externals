@@ -30,7 +30,7 @@ class Spotify extends Externals {
       source = this.options_.source.src;
     }
 
-    const el_ = super.createEl('iframe', {
+    const el_ = super.dom.createEl('iframe', {
       width: '100%',
       height: '100%',
       onload: () => this.onStateChange({type: 'apiready'}),

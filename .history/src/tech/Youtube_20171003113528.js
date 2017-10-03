@@ -6,6 +6,7 @@ import videojs from 'video.js';
 import Externals from './Externals';
 import window from 'global/window';
 
+const Component = videojs.getComponent('Component');
 const Tech = videojs.getComponent('Tech');
 
 /**
@@ -23,6 +24,7 @@ class Youtube extends Externals {
     }
 
     createEl () {
+
         const el_ = super.createEl('div', {
             id: this.options_.techId,
         });
@@ -342,6 +344,8 @@ Youtube.Events = 'ready,play,playProgress,loadProgress,pause,seek,finish,error'.
 
 // Register the native source handler
 Youtube.registerSourceHandler(Youtube.nativeSourceHandler);
+
+Component.registerComponent('Youtube', Youtube);
 
 Tech.registerTech('Youtube', Youtube);
 

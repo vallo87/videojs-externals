@@ -1,5 +1,5 @@
 /**
- * @file Dailymotion.js
+ * @file Vimeo.js
  * Externals (iframe) Media Controller - Wrapper for HTML5 Media API
  */
 'use strict';
@@ -26,6 +26,11 @@ var _Externals2 = require('./Externals');
 
 var _Externals3 = _interopRequireDefault(_Externals2);
 
+var _globalWindow = require('global/window');
+
+var _globalWindow2 = _interopRequireDefault(_globalWindow);
+
+var Component = _videoJs2['default'].getComponent('Component');
 var Tech = _videoJs2['default'].getComponent('Tech');
 
 /**
@@ -34,36 +39,35 @@ var Tech = _videoJs2['default'].getComponent('Tech');
  * @param {Object=} options Object of option names and values
  * @param {Function=} ready Ready callback function
  * @extends Tech
- * @class Dailymotion
+ * @class Vimeo
  */
 
-var Dailymotion = (function (_Externals) {
-    _inherits(Dailymotion, _Externals);
+var Vimeo = (function (_Externals) {
+    _inherits(Vimeo, _Externals);
 
-    function Dailymotion(options, ready) {
-        _classCallCheck(this, Dailymotion);
+    function Vimeo(options, ready) {
+        _classCallCheck(this, Vimeo);
 
-        _get(Object.getPrototypeOf(Dailymotion.prototype), 'constructor', this).call(this, options, ready);
+        _get(Object.getPrototypeOf(Vimeo.prototype), 'constructor', this).call(this, options, ready);
     }
 
-    _createClass(Dailymotion, [{
+    _createClass(Vimeo, [{
         key: 'createEl',
         value: function createEl() {
 
-            var dailymotionSource = null;
+            var vimeoSource = null;
             if ('string' === typeof this.options_.source) {
-                dailymotionSource = this.options_.source;
+                vimeoSource = this.options_.source;
             } else if ('object' === typeof this.options_.source) {
-                dailymotionSource = this.options_.source.src;
+                vimeoSource = this.options_.source.src;
             }
 
-            dailymotionSource = this.parseSrc(dailymotionSource);
+            vimeoSource = this.parseSrc(vimeoSource);
 
-            var el_ = _get(Object.getPrototypeOf(Dailymotion.prototype), 'createEl', this).call(this, 'iframe', {
+            var el_ = _get(Object.getPrototypeOf(Vimeo.prototype), 'createEl', this).call(this, 'iframe', {
                 id: this.options_.techId,
-                src: 'about:blank'
+                src: this.options_.embed + '/' + vimeoSource + '??api=1&player_id=' + this.options_.techId + '&fullscreen=1&autoplay=' + this.options_.autoplay
             });
-            el_.className += ' vjs-dailymotion-loading';
 
             (0, _videoJs2['default'])(this.options_.playerId);
             return el_;
@@ -72,26 +76,49 @@ var Dailymotion = (function (_Externals) {
         key: 'parseSrc',
         value: function parseSrc(src) {
             if (src) {
-                // Regex that parse the video ID for any Dailymotion URL
-                var regExp = /^.+dailymotion.com\/((video|hub)\/([^_]+))?[^#]*(#video=([^_&]+))?/;
+                // Regex that parse the video ID for any Vimeo URL
+                var regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?([0-9]+)/;
                 var match = src.match(regExp);
 
-                return match ? match[5] || match[3] : null;
+                if (match && match[5]) {
+                    return match[5];
+                }
             }
         }
     }, {
         key: 'isApiReady',
         value: function isApiReady() {
-            return window['DM'] && window['DM']['player'];
+            return _globalWindow2['default']['Vimeo'] && _globalWindow2['default']['Vimeo']['Player'];
         }
     }, {
-        key: 'injectCss',
-        value: function injectCss(overrideStyle) {
-            if (!overrideStyle) {
-                overrideStyle = '';
+        key: 'addScriptTag',
+        value: function addScriptTag() {
+            var self = this;
+            if (_globalWindow2['default']['requirejs']) {
+                requirejs([this.options_.api], function (Vimeo) {
+                    _globalWindow2['default']['Vimeo'] = { Player: Vimeo };
+                    self.initTech();
+                });
+            } else {
+                var r = false,
+                    d = document,
+                    s = d.getElementsByTagName('head')[0] || d.documentElement;
+                var js = d.createElement('script');
+                js.async = true;
+                js.type = 'text/javascript';
+                js.onload = js.onreadystatechange = function () {
+                    var rs = this.readyState;
+                    if (!r && (!rs || /loaded|complete/.test(rs))) {
+                        r = true;
+                        // Handle memory leak in IE
+                        js.onload = js.onreadystatechange = null;
+                        self.initTech();
+                    }
+                };
+
+                js.src = this.options_.api;
+                s.insertBefore(js, s.firstChild);
             }
-            overrideStyle += '.vjs-dailymotion.vjs-dailymotion-loading {padding-top: 52.6%;background: transparent;}';
-            _get(Object.getPrototypeOf(Dailymotion.prototype), 'injectCss', this).call(this, overrideStyle);
         }
     }, {
         key: 'initTech',
@@ -106,56 +133,26 @@ var Dailymotion = (function (_Externals) {
                 source = this.options_.source.src;
             }
 
-            var videoId = this.parseSrc(source);
+            source = this.parseSrc(source);
 
-            var dmOpts = _videoJs2['default'].mergeOptions(this.options_, {
-                video: videoId,
-                width: this.options_.width,
-                height: this.options_.height,
-                params: _videoJs2['default'].mergeOptions(this.player_.options_, {
-                    controls: false, // disable DM controls & buttons for better integration
-                    'endscreen-enable': false,
-                    'sharing-enable': false
-                })
+            var vimOpts = _videoJs2['default'].mergeOptions(this.options_, {
+                id: source,
+                byline: 0,
+                color: '#00adef',
+                portrait: 0,
+                fullscreen: 1
             });
 
-            this.widgetPlayer = new window.DM.player(this.options_.techId, dmOpts);
-            this.widgetPlayer.addEventListener('apiready', _videoJs2['default'].bind(this, this.onReady));
-            _get(Object.getPrototypeOf(Dailymotion.prototype), 'initTech', this).call(this);
+            this.widgetPlayer = new _globalWindow2['default'].Vimeo.Player(this.options_.techId, vimOpts);
+            this.widgetPlayer.ready().then(_videoJs2['default'].bind(this, this.onReady));
+            _get(Object.getPrototypeOf(Vimeo.prototype), 'initTech', this).call(this);
             this.onStateChange({ type: -1 });
         }
     }, {
         key: 'onReady',
         value: function onReady() {
-            _get(Object.getPrototypeOf(Dailymotion.prototype), 'onReady', this).call(this);
-            this.updateDuration();
-            this.updateVolume();
-            this.updatePoster();
-            this.onStateChange({ type: 'ready' });
-            this.el_.className.replace(' vjs-dailymotion-loading', ''); // remove loading class
-        }
-    }, {
-        key: 'updatePoster',
-        value: function updatePoster() {
-            /*jshint camelcase: false */
-            try {
-                //const track = this.widgetPlayer.getCurrentTrack();
-                var videoId = null;
-                if ('string' === typeof this.options_.source) {
-                    videoId = this.options_.source;
-                } else if ('object' === typeof this.options_.source) {
-                    videoId = this.options_.source.src;
-                }
-                videoId = this.parseSrc(videoId);
-                var apiUrl = 'https://api.dailymotion.com/video/' + videoId + '?fields=thumbnail_large_url';
-                _videoJs2['default'].xhr(apiUrl, { responseType: 'json' }, (function (err, data) {
-                    if (data.body.thumbnail_large_url) {
-                        this.setPoster(data.body.thumbnail_large_url);
-                    }
-                }).bind(this));
-            } catch (e) {
-                console.log('unable to set poster', e);
-            }
+            _get(Object.getPrototypeOf(Vimeo.prototype), 'onReady', this).call(this);
+            this.onStateChange({ type: 'loaded' });
         }
     }, {
         key: 'setupTriggers',
@@ -165,14 +162,14 @@ var Dailymotion = (function (_Externals) {
             this.widgetPlayer.vjsTech = this;
 
             var _loop = function () {
-                var eventName = Dailymotion.Events[i];
+                var eventName = Vimeo.Events[i];
                 /*jshint loopfunc: true */
-                _this.widgetPlayer.addEventListener(eventName, function (data) {
+                _this.widgetPlayer.on(eventName, function (data) {
                     _this.eventHandler(_videoJs2['default'].mergeOptions({ type: eventName }, data));
                 });
             };
 
-            for (var i = Dailymotion.Events.length - 1; i >= 0; i--) {
+            for (var i = Vimeo.Events.length - 1; i >= 0; i--) {
                 _loop();
             }
         }
@@ -181,82 +178,93 @@ var Dailymotion = (function (_Externals) {
         value: function onStateChange(event) {
             var state = event.type;
             this.lastState = state;
-            _get(Object.getPrototypeOf(Dailymotion.prototype), 'onStateChange', this).call(this, event);
+            _get(Object.getPrototypeOf(Vimeo.prototype), 'onStateChange', this).call(this, event);
+            if (event.volume) {
+                this.updateVolume();
+            }
+            if (event.duration && this.duration_ != event.duration) {
+                this.duration_ = event.duration;
+                this.trigger('durationchange');
+            }
             switch (state) {
-                case -1:
-                    if (this.options_.autoplay) {
-                        this.trigger('loadstart');
-                        this.trigger('waiting');
-                    }
-                    break;
-                case 'video_end':
-                    this.updateEnded();
-                    this.updatePaused();
-                    this.trigger('ended');
-                    break;
-                case 'start':
+                case 'loaded':
                     this.trigger('loadedmetadata');
                     this.trigger('durationchange');
                     this.trigger('canplay');
-                    this.updatePaused();
-                    break;
-                case 'durationchange':
-                    this.updateDuration();
-                    break;
-                case 'volumechange':
-                    this.updateVolume();
                     break;
                 case 'timeupdate':
-                    this.currentTime_ = this.widgetPlayer.currentTime;
+                    if (event.seconds) {
+                        this.currentTime_ = event.seconds;
+                        this.trigger('timeupdate');
+                    }
                     break;
                 case 'progress':
-                    this.buffered_ = this.widgetPlayer.bufferedTime;
+                    if (event.percent) {
+                        this.buffered_ = event.percent;
+                        this.trigger('progress');
+                    }
                     break;
                 case 'pause':
-                    this.updatePaused();
                     this.trigger('pause');
                     break;
                 case 'play':
-                    this.updatePaused();
                     this.trigger('play');
                     break;
-                case 'ready':
-                    this.trigger('loadedmetadata');
-                    this.trigger('canplay');
+                case 'end':
+                    this.updateEnded();
                     break;
             }
+            this.updatePaused();
         }
     }, {
         key: 'updateVolume',
         value: function updateVolume() {
-            var vol = this.widgetPlayer.volume;
-            if (typeof this.volumeBefore_ === 'undefined') {
-                this.volumeBefore_ = vol;
-            }
-            if (this.volume_ !== vol) {
-                this.volume_ = vol;
-                this.trigger('volumechange');
-            }
+            var _this2 = this;
+
+            this.widgetPlayer.getVolume().then(function (volume) {
+                _this2.volume_ = volume;
+                if (_this2.volume_ != volume) {
+                    _this2.trigger('volumechange');
+                }
+            });
         }
     }, {
         key: 'updateEnded',
         value: function updateEnded() {
-            this.ended_ = this.widgetPlayer.ended;
+            var _this3 = this;
+
+            this.widgetPlayer.getEnded().then(function (ended) {
+                _this3.ended_ = ended;
+                if (ended) _this3.trigger('ended');
+            });
         }
     }, {
         key: 'updatePaused',
         value: function updatePaused() {
-            this.paused_ = this.widgetPlayer.paused;
+            var _this4 = this;
+
+            this.widgetPlayer.getPaused().then(function (paused) {
+                if (paused != _this4.paused_) {
+                    _this4.paused_ = paused;
+                    if (paused) {
+                        _this4.trigger('pause');
+                    }
+                }
+            });
         }
     }, {
         key: 'updateDuration',
         value: function updateDuration() {
-            this.duration_ = this.widgetPlayer.duration;
+            var _this5 = this;
+
+            this.widgetPlayer.getDuration().then(function (duration) {
+                _this5.duration_ = duration;
+            });
         }
     }, {
         key: 'buffered',
         value: function buffered() {
-            return _videoJs2['default'].createTimeRange(0, this.buffered_ || 0);
+            return _videoJs2['default'].createTimeRange(0, this.buffered_ * this.duration_ || 0);
         }
     }, {
         key: 'ended',
@@ -276,8 +284,11 @@ var Dailymotion = (function (_Externals) {
     }, {
         key: 'setCurrentTime',
         value: function setCurrentTime(seconds) {
-            this.widgetPlayer.seek(seconds);
-            this.currentTime_ = seconds;
+            var _this6 = this;
+
+            this.widgetPlayer.setCurrentTime(seconds).then(function (seconds) {
+                _this6.currentTime_ = seconds;
+            });
         }
     }, {
         key: 'play',
@@ -288,11 +299,6 @@ var Dailymotion = (function (_Externals) {
         key: 'pause',
         value: function pause() {
             this.widgetPlayer.pause();
-        }
-    }, {
-        key: 'seek',
-        value: function seek(time) {
-            this.widgetPlayer.seek(time);
         }
     }, {
         key: 'paused',
@@ -312,9 +318,12 @@ var Dailymotion = (function (_Externals) {
     }, {
         key: 'setVolume',
         value: function setVolume(percentAsDecimal) {
+            var _this7 = this;
+
             if (percentAsDecimal !== this.volume_) {
-                this.widgetPlayer.setVolume(percentAsDecimal);
-                this.updateVolume();
+                this.widgetPlayer.setVolume(percentAsDecimal).then(function () {
+                    _this7.updateVolume();
+                });
             }
         }
     }, {
@@ -328,25 +337,25 @@ var Dailymotion = (function (_Externals) {
         }
     }]);
 
-    return Dailymotion;
+    return Vimeo;
 })(_Externals3['default']);
 
-Dailymotion.prototype.options_ = {
-    api: '//api.dmcdn.net/all.js',
-    embed: '//www.dailymotion.com/embed/video/',
+Vimeo.prototype.options_ = {
+    api: '//player.vimeo.com/api/player.js',
+    embed: '//player.vimeo.com/video',
     visibility: 'visible'
 };
 
-Dailymotion.prototype.className_ = 'dailymotion';
+Vimeo.prototype.className_ = 'Vimeo';
 
-/* Dailymotion Support Testing -------------------------------------------------------- */
+/* Vimeo Support Testing -------------------------------------------------------- */
 
-Dailymotion.isSupported = function () {
+Vimeo.isSupported = function () {
     return true;
 };
 
 // Add Source Handler pattern functions to this tech
-Tech.withSourceHandlers(Dailymotion);
+Tech.withSourceHandlers(Vimeo);
 
 /*
  * The default native source handler.
@@ -355,36 +364,36 @@ Tech.withSourceHandlers(Dailymotion);
  * @param  {Object} source   The source object
  * @param  {Flash} tech  The instance of the Flash tech
  */
-Dailymotion.nativeSourceHandler = {};
+Vimeo.nativeSourceHandler = {};
 
 /**
  * Check if Flash can play the given videotype
  * @param  {String} type    The mimetype to check
  * @return {String}         'probably', 'maybe', or '' (empty string)
  */
-Dailymotion.nativeSourceHandler.canPlayType = function (source) {
-    return source.indexOf('dailymotion') !== -1;
+Vimeo.nativeSourceHandler.canPlayType = function (source) {
+    return source.indexOf('vimeo') !== -1;
 };
 
 /*
- * Check Dailymotion can handle the source natively
+ * Check Vimeo can handle the source natively
  *
  * @param  {Object} source  The source object
  * @return {String}         'probably', 'maybe', or '' (empty string)
  */
-Dailymotion.nativeSourceHandler.canHandleSource = function (source) {
+Vimeo.nativeSourceHandler.canHandleSource = function (source) {
 
     // If a type was provided we should rely on that
     if (source.type) {
-        return Dailymotion.nativeSourceHandler.canPlayType(source.type);
+        return Vimeo.nativeSourceHandler.canPlayType(source.type);
     } else if (source.src) {
-        return Dailymotion.nativeSourceHandler.canPlayType(source.src);
+        return Vimeo.nativeSourceHandler.canPlayType(source.src);
     }
 
     return '';
 };
 
-Dailymotion.nativeSourceHandler.handleSource = function (source, tech) {
+Vimeo.nativeSourceHandler.handleSource = function (source, tech) {
     tech.src(source.src);
 };
 
@@ -392,14 +401,16 @@ Dailymotion.nativeSourceHandler.handleSource = function (source, tech) {
  * Clean up the source handler when disposing the player or switching sources..
  * (no cleanup is needed when supporting the format natively)
  */
-Dailymotion.nativeSourceHandler.dispose = function () {};
+Vimeo.nativeSourceHandler.dispose = function () {};
 
 // Register the native source handler
-Dailymotion.registerSourceHandler(Dailymotion.nativeSourceHandler);
+Vimeo.registerSourceHandler(Vimeo.nativeSourceHandler);
 
-Dailymotion.Events = ('loaded,play,playing,pause,loadedmetadata,durationchange,ended,' + 'timeupdate,progress,seeking,seeked,subtitlechange,' + 'volumechange,error,video_start,video_end,waiting').split(',');
+Vimeo.Events = 'loaded,play,ended,timeupdate,progress,seeked,texttrackchange,cuechange,volumechange,error'.split(',');
 
-Tech.registerTech('Dailymotion', Dailymotion);
+Component.registerComponent('Vimeo', Vimeo);
 
-exports['default'] = Dailymotion;
+Tech.registerTech('Vimeo', Vimeo);
+
+exports['default'] = Vimeo;
 module.exports = exports['default'];
